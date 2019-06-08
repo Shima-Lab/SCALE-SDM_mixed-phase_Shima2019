@@ -48,6 +48,7 @@
 !! @li      2019-01-10 (S.Shima) [mod] new geometric cross-sectional formula for collision-riming kernel (Shima et al., 2019)
 !! @li      2019-01-12 (S.Shima) [mod] dry air density -> moist air density
 !! @li      2019-06-08 (S.Shima) [fix] riming density formula of Heymsfield and Pflaum (1985)
+!! @li      2019-06-08 (S.Shima) [mod] sdm_outcome_riming() to avoid creation of long columns 
 !
 !<
 !-------------------------------------------------------------------------------
@@ -1390,7 +1391,7 @@ contains
              sd_m2_tmp = F_THRD * ONE_PI * (sd_re1**2*sd_rp1*sd_rho1*real(sd_ncol,kind=RP) + sd_r2**3*rhow_mks)
              sd_v2_tmp = F_THRD * ONE_PI * (sd_re1**2*sd_rp1*real(sd_ncol,kind=RP) + sd_r2**3*(rhow_mks/rho_rime))
              ! update re
-             sd_re2_tmp = sd_re1
+             sd_re2_tmp = max(sd_re1,sd_r2*(rhow_mks/rho_rime)**O_THRD)
              ! update rho
              sd_rho2_tmp = sd_m2_tmp/sd_v2_tmp
              ! update rp
@@ -1405,7 +1406,7 @@ contains
              sd_m2_tmp = F_THRD * ONE_PI * (sd_re1**2*sd_rp1*sd_rho1*real(sd_ncol,kind=RP) + sd_r2**3*rhow_mks)
              sd_v2_tmp = F_THRD * ONE_PI * (sd_re1**2*sd_rp1*real(sd_ncol,kind=RP) + sd_r2**3*(rhow_mks/rho_rime))
              ! update rp
-             sd_rp2_tmp = sd_rp1
+             sd_rp2_tmp = max(sd_rp1,sd_r2*(rhow_mks/rho_rime)**O_THRD)
              ! update rho
              sd_rho2_tmp = sd_m2_tmp/sd_v2_tmp
              ! update re
@@ -1441,7 +1442,7 @@ contains
              sd_m2_tmp = F_THRD * ONE_PI * (sd_r1**3*rhow_mks*real(sd_ncol,kind=RP) + sd_re2**2*sd_rp2*sd_rho2)
              sd_v2_tmp = F_THRD * ONE_PI * (sd_r1**3*(rhow_mks/rho_rime)*real(sd_ncol,kind=RP) + sd_re2**2*sd_rp2)
              ! update re
-             sd_re2_tmp = sd_re2
+             sd_re2_tmp = max(sd_re2,sd_r1*((rhow_mks/rho_rime)*real(sd_ncol,kind=RP))**O_THRD)
              ! update rho
              sd_rho2_tmp = sd_m2_tmp/sd_v2_tmp
              ! update rp
@@ -1456,7 +1457,7 @@ contains
              sd_m2_tmp = F_THRD * ONE_PI * (sd_r1**3*rhow_mks*real(sd_ncol,kind=RP) + sd_re2**2*sd_rp2*sd_rho2)
              sd_v2_tmp = F_THRD * ONE_PI * (sd_r1**3*(rhow_mks/rho_rime)*real(sd_ncol,kind=RP) + sd_re2**2*sd_rp2)
              ! update rp
-             sd_rp2_tmp = sd_rp2
+             sd_rp2_tmp = max(sd_rp2,sd_r1*((rhow_mks/rho_rime)*real(sd_ncol,kind=RP))**O_THRD)
              ! update rho
              sd_rho2_tmp = sd_m2_tmp/sd_v2_tmp
              ! update re
