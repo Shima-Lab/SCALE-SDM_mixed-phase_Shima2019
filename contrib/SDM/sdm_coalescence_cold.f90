@@ -47,6 +47,7 @@
 !! @li      2019-01-10 (S.Shima) [mod] mimick tumbling if the ice is quasi spherical (Jensen and Harrington, 2015)
 !! @li      2019-01-10 (S.Shima) [mod] new geometric cross-sectional formula for collision-riming kernel (Shima et al., 2019)
 !! @li      2019-01-12 (S.Shima) [mod] dry air density -> moist air density
+!! @li      2019-06-08 (S.Shima) [fix] riming density formula of Heymsfield and Pflaum (1985)
 !
 !<
 !-------------------------------------------------------------------------------
@@ -2242,6 +2243,7 @@ subroutine sdm_rho_riming_Heymsfield_Pflaum_1985(rho_rime,sd_r,sd_re,sd_rp,sd_vz
   if( (temp_icesfc <= -5.0d0) .or. (var_Y < 1.6d0) )then
      rho_rime = 0.30d0*var_Y**0.44d0
   else
+     var_Y = min(var_Y,3.5d0)
      rho_rime = exp( -0.03115d0 - 1.7030d0*var_Y + 0.9116d0*var_Y**2 - 0.1224*var_Y**3 )
   end if
   rho_rime = max(rho_rime,0.1d0)
