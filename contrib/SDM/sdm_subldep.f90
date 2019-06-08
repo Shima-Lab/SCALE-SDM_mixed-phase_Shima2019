@@ -29,6 +29,7 @@
 !! @li      2018-06-30 (S.Shima) [add] calculation of rime mass
 !! @li      2019-01-10 (S.Shima) [mod] deposition density of Chen and Lamb (1994) but use rho_bulk for small plate (Jensen and Harrington, 2015)
 !! @li      2019-01-12 (S.Shima) [mod] dry air density -> moist air density
+!! @li      2019-06-08 (S.Shima) [mod] set inherent growth ratio = 1 for sublimation
 !!
 !< 
 !-------------------------------------------------------------------------------
@@ -303,6 +304,7 @@ contains
 
        else ! sublimation
           rho_dep = sd_rho
+          growth_ratio=1.0d0 !! set inherent growth ratio = 1 for sublimation
        end if
        
        delta_vol = delta_mass / rho_dep
