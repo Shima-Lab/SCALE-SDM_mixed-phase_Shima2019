@@ -1,4 +1,4 @@
-Readme file for SCALE-SDM 0.2.5-2.2.1 to reproduce the results of Shima et al. (2019, GMDD).
+Readme file for SCALE-SDM 0.2.5-2.2.2 to reproduce the results of Shima et al. (2019, GMDD).
 
 Corresponding Author: Shin-ichiro Shima (s_shima[at]sim.u-hyogo.ac.jp)
 
@@ -9,6 +9,8 @@ SCALE is a library of weather and climate models of the Earth and planets (Nishi
 and constructed a mixed-phase cloud model, SCALE-SDM 0.2.5-2.2.0. 
 
 Then, by correcting three of the four issues (see Shima et al., 2019, GMDD), we updated the model to SCALE-SDM 0.2.5-2.2.1.
+
+Then, by fixing the implementation of the terminal velocity formula of Bohm (1992), and by imposing a limiter Gamma_star<=1 for the deposition of too long ice particles (see Shima et al., 2019, GMDD), we updated the model to SCALE-SDM 0.2.5-2.2.2.
 
 Detailed instruction of SCALE (without SDM) are avaiable from the SCALE web page: http://r-ccs-climate.riken.jp/scale/doc/index.html.
 
