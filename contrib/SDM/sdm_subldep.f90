@@ -30,6 +30,7 @@
 !! @li      2019-01-10 (S.Shima) [mod] deposition density of Chen and Lamb (1994) but use rho_bulk for small plate (Jensen and Harrington, 2015)
 !! @li      2019-01-12 (S.Shima) [mod] dry air density -> moist air density
 !! @li      2019-06-08 (S.Shima) [mod] set inherent growth ratio = 1 for sublimation
+!! @li      2020-05-24 (S.Shima) [mod] if already too long, limit Gamma_star<=1 for deposition
 !!
 !< 
 !-------------------------------------------------------------------------------
@@ -330,6 +331,11 @@ contains
        end if
 
        growth_ratio_star = growth_ratio * fratio
+
+       !! if already too long, limit Gamma_star<=1 for deposition
+       if( (delta_mass > 0.0d0) .and. (sd_phi>40.0_RP) )then
+          growth_ratio_star = min(growth_ratio_star,1.0_RP)
+       end if
 
        !###### Radius change ######!
        delta_logvol = log(new_sd_vol/sd_vol)
