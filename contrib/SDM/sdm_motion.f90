@@ -32,6 +32,7 @@
 !! @li      2018-03-31 (S.Shima) [add] set an upper-limit 7mm to the droplet diameter when using Beard formula (1976)
 !! @li      2019-01-10 (S.Shima) [mod] no interpolation of scalar variables when evaluating terminal velocity
 !! @li      2019-01-12 (S.Shima) [mod] dry air density -> moist air density
+!! @li      2020-03-23 (S.Shima) [fix] terminal velocity formula of Bohm (1992)
 !!
 !<
 !-------------------------------------------------------------------------------
@@ -1298,6 +1299,7 @@ contains
     real(RP) :: sd_mass   ! mass [kg] of the particle
     real(RP) :: sd_area   ! A: area of the particle projected to the flow direction [m^2]
     real(RP) :: sd_area_ratio ! sd_area_ratio Ar: A divided by the area of a circumscribing disk
+    real(RP) :: sd_area_ratio_q ! q: A divided by the area of a circumscribed ellipse
     real(RP) :: sd_phi    ! sd_rp/sd_re: aspect ratio
     real(RP) :: var_k     ! k:=exp(-c/a). Needed to evaluate A.
 
@@ -1442,7 +1444,9 @@ contains
 !!$             call terminal_vel_Heymsfield_Westbrook_2010(sd_vz(n),sd_rd,sd_dvisc,sd_mass,sd_area_ratio,sd_maxD)
 
              ! terminal velocity of ice particles by Bohm (1992)
-             call terminal_vel_Bohm_1992(sd_vz(n),sd_rd,sd_dvisc,sd_mass,sd_area_ratio,sd_maxD,sd_phi)
+             !! q: A divided by the area of a circumscribed ellipse
+             sd_area_ratio_q = sd_area / (ONE_PI * sdi%re(n) * (sd_maxD/2.0d0))
+             call terminal_vel_Bohm_1992(sd_vz(n),sd_rd,sd_dvisc,sd_mass,sd_area_ratio_q,2.0_RP*sdi%re(n),sd_phi)
 
           end do
 
@@ -1502,7 +1506,9 @@ contains
 !!$             call terminal_vel_Heymsfield_Westbrook_2010(sd_vz(n),sd_rd,sd_dvisc,sd_mass,sd_area_ratio,sd_maxD)
 
              ! terminal velocity of ice particles by Bohm (1992)
-             call terminal_vel_Bohm_1992(sd_vz(n),sd_rd,sd_dvisc,sd_mass,sd_area_ratio,sd_maxD,sd_phi)
+             !! q: A divided by the area of a circumscribed ellipse
+             sd_area_ratio_q = sd_area / (ONE_PI * sdi%re(n) * (sd_maxD/2.0d0))
+             call terminal_vel_Bohm_1992(sd_vz(n),sd_rd,sd_dvisc,sd_mass,sd_area_ratio_q,2.0_RP*sdi%re(n),sd_phi)
 
           end do
        end if
@@ -1565,7 +1571,7 @@ contains
 
   end subroutine terminal_vel_Heymsfield_Westbrook_2010
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  subroutine terminal_vel_Bohm_1992(sd_vz,sd_rd,sd_dvisc,sd_mass,sd_area_ratio,sd_maxD,sd_phi)
+  subroutine terminal_vel_Bohm_1992(sd_vz,sd_rd,sd_dvisc,sd_mass,sd_area_ratio_q,sd_chard,sd_phi)
     ! terminal velocity of ice particles by Bohm (1989,1992,1999)
     use scale_const, only: &
          grav_mks => CONST_GRAV  ! gravitational constant [m/s^2]
@@ -1579,8 +1585,8 @@ contains
     real(RP),intent(in) :: sd_rd  ! air density [kg/m^3] at the location of super-droplets
     real(RP),intent(in) :: sd_dvisc  ! dynamic viscosity [kg/(m*s)] at the location of super-droplets
     real(RP),intent(in) :: sd_mass   ! mass [kg] of the particle
-    real(RP),intent(in) :: sd_area_ratio ! sd_area_ratio Ar: A divided by the area of a circumscribing disk
-    real(RP),intent(in) :: sd_maxD   ! maximum dimension of the particle [m]
+    real(RP),intent(in) :: sd_area_ratio_q ! q: A divided by the area of a circumscribed ellipse
+    real(RP),intent(in) :: sd_chard  ! 2.0*(equatorial radius), NOT the maximum dimension of the particle [m]
     real(RP),intent(in) :: sd_phi    ! sd_rp/sd_re: aspect ratio
 
     real(RP) :: n_X    ! Best (Davies) number
@@ -1594,7 +1600,7 @@ contains
     real(RP),parameter :: X0 = 2.8d6 ! parameter for turbulence correction 
 
     ! Best (Davies) number of the particle
-    n_X = (sd_rd/sd_dvisc**2)*(8.0d0*sd_mass*grav_mks)/ONE_PI/max(sd_phi,1.0d0)/max(sd_area_ratio**0.25d0,sd_area_ratio)
+    n_X = (sd_rd/sd_dvisc**2)*(8.0d0*sd_mass*grav_mks)/ONE_PI/max(sd_phi,1.0d0)/max(sd_area_ratio_q**0.25d0,sd_area_ratio_q)
 
     ! turbulence correction
     n_X = n_X*(1.0d0+(n_X/X0)**2)/(1.0d0+1.6d0*(n_X/X0)**2)
@@ -1611,9 +1617,9 @@ contains
 
     ! pressure drag coefficients 
     C_DPS = max( 0.292d0*sf_k*drag_gamma, 0.492d0-0.2d0/sqrt(sd_phi) )
-    C_DP  = max( 1.0d0, sd_area_ratio*(1.46d0*sd_area_ratio-0.46d0) )*C_DPS  
+    C_DP  = max( 1.0d0, sd_area_ratio_q*(1.46d0*sd_area_ratio_q-0.46d0) )*C_DPS  
     !!! NOTE
-    !!! C_DP  = max( 1.0d0, (1.46d0*sd_area_ratio-0.46d0) )*C_DPS, could be the correct equation.
+    !!! C_DP  = max( 1.0d0, (1.46d0*sd_area_ratio_q-0.46d0) )*C_DPS, could be the correct equation.
 
     ! Oseen drag coefficients 
     C_DO = 4.5d0*sf_k**2*max(sd_phi,1.0d0)
@@ -1628,7 +1634,7 @@ contains
     nre = nre*( 1.0d0 + 2.0d0*var_beta*exp(-var_beta*var_gamma)/(2.0d0+var_beta)/(1.0d0+var_beta))
 
     ! terminal velocity [m/s]
-    sd_vz = sd_dvisc * nre / sd_rd / sd_maxD
+    sd_vz = sd_dvisc * nre / sd_rd / sd_chard
 
   end subroutine terminal_vel_Bohm_1992
 end module m_sdm_motion
